@@ -14,17 +14,19 @@
  */
 jQuery.fn.ezFloatingWindow = function(opt) {
 
-	//パラメーターの引継ぎ
+	//extended parameter.
 	var option = jQuery.extend(true,{},{
 		'overlayId': 'floatongWindow-overlay',
 		'overlayCss': {
 			'opacity':    0.5,
 			'position':  'fixed',
 			'left':      '0px',
-			'top':       '0px'
+			'top':       '0px',
+			'background-color':     '#666'
 		},
 		'containerId': 'floatingWindow-container',
 		'containerCss': {
+			'display':   'none',
 			'width':     '300px',
 			'position':  'fixed',
 			'top':       '150px',
@@ -33,7 +35,18 @@ jQuery.fn.ezFloatingWindow = function(opt) {
 		},
 		'contentsElement': '#floatingWindow-contents',
 		'z-index': 1000,
-		'show': function(){},
+		'show': function(dialog){
+			jQuery(dialog.overlay).fadeIn(150,function(){
+				jQuery(dialog.container).slideDown();
+			});
+		},
+		'hide': function(dialog,finish){
+			jQuery(dialog.container).slideUp(function(){
+				jQuery(dialog.overlay).fadeOut(150,function(){
+					finish();
+				});
+			});
+		},
 		'escClose': true,
 		'overlayClose': true,
 		'displayMode': 'absolute',
@@ -48,9 +61,7 @@ jQuery.fn.ezFloatingWindow = function(opt) {
 	//Window対象要素を一旦非表示に
 	$(option.contentsElement).hide();
 
-
-	//[Event]
-	//イベント定義 floatingWindowを表示
+	//Event - show floatingWindow
 	jQuery(this).click(function(ev) {
 
 		//cancel native event
@@ -61,6 +72,7 @@ jQuery.fn.ezFloatingWindow = function(opt) {
 		option.overlayCss.height = window.innerHeight + 'px';
 		option.overlayCss.width  = window.innerWidth + 'px';
 		option.overlayCss['z-index'] = option['z-index'] + 1;
+		option.overlayCss.display = 'none';
 
 		dom_overlay.id = option.overlayId;
 		jQuery(dom_overlay).css(option.overlayCss);
@@ -97,15 +109,16 @@ jQuery.fn.ezFloatingWindow = function(opt) {
 		option.containerCss['z-index'] = option['z-index'] + 10;
 		var dom_container = document.createElement('div');
 		dom_container.id = option.containerId;
-		jQuery(dom_container).css(option.containerCss).html(jQuery(option.contentsElement).clone().show());
+		jQuery(dom_container).css(option.containerCss).html(jQuery(option.contentsElement).clone().attr('id','').show());
 		dom_body.appendChild(dom_container);
 
+		// show event
+		option.show.call(this,{'overlay': jQuery('#'+option.overlayId),'container': jQuery('#'+option.containerId)});
 
 		// if conainer position is out of window, fixed.
 		if(option.containerCss.left < 0){
 			jQuery('#'+option.containerId).animate({'left':target_offset.left},'fast','swing');
 		}
-
 
 		// ----- Event Setting ----
 		jQuery('.'+option.closeClass).bind('click',function(ev){
@@ -125,17 +138,21 @@ jQuery.fn.ezFloatingWindow = function(opt) {
 			jQuery(document).keydown(function(e) {
 				// ESCAPE key pressed
 				if (e.keyCode == 27) {
-					jQuery('#'+option.containerId).remove();
-					jQuery('#'+option.overlayId).remove();
+					_deleteWindow();
 				}
 			});
 		}
-
 	});
 
-	function _deleteWindow(){
-		jQuery('#'+option.containerId).remove();
-		jQuery('#'+option.overlayId).remove();
-	}
+	// display remove function
+	var _deleteWindow = function(){
+		option.hide.call(this,{'overlay': jQuery('#'+option.overlayId),'container': jQuery('#'+option.containerId)},function(){
+			jQuery('#'+option.containerId).remove();
+			jQuery('#'+option.overlayId).remove();
+			jQuery('.'+option.closeClass).unbind('click');
+			jQuery('#'+option.overlayId).unbind('click');
+		});
 
+	}
 };
+
