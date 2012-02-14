@@ -16,7 +16,7 @@ jQuery.fn.ezFloatingWindow = function(opt) {
 
 	//extended parameter.
 	var option = jQuery.extend(true,{},{
-		'overlayId': 'floatongWindow-overlay',
+		'overlayId': 'floatingWindow-overlay',
 		'overlayCss': {
 			'opacity':    0.5,
 			'position':  'fixed',
