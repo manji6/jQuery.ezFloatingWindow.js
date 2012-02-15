@@ -29,25 +29,26 @@ jQuery.fn.ezFloatingWindow = function(opt) {
 			'display':   'none',
 			'width':     '300px',
 			'position':  'fixed',
-			'top':       '150px',
 			'border':    '1px solid #cfcfcf',
 			'background':'#fafafa'
 		},
+		'containerTo': 'body',
 		'contentsElement': '#floatingWindow-contents',
 		'z-index': 1000,
-		'show': function(dialog){
-			jQuery(dialog.overlay).fadeIn(150,function(){
-				jQuery(dialog.container).slideDown();
+		'show': function(elements){
+			jQuery(elements.overlay).fadeIn(150,function(){
+				jQuery(elements.container).slideDown();
 			});
 		},
-		'hide': function(dialog,finish){
-			jQuery(dialog.container).slideUp(function(){
-				jQuery(dialog.overlay).fadeOut(150,function(){
+		'hide': function(elements,finish){
+			jQuery(elements.container).slideUp(function(){
+				jQuery(elements.overlay).fadeOut(150,function(){
 					finish();
 				});
 			});
 		},
 		'escClose': true,
+		'autoPosition': true,
 		'overlayClose': true,
 		'displayMode': 'absolute',
 		'closeClass': 'floatingWindow-close'
@@ -96,13 +97,17 @@ jQuery.fn.ezFloatingWindow = function(opt) {
 
 			option.containerCss.position = 'absolute';
 			option.containerCss.left = target_offset.left;
-			option.containerCss.top = target_offset.top + jQuery(dom_element).height();
+			option.containerCss.top = target_offset.top + jQuery(dom_element).outerHeight();
 
 		}else if(option.displayMode === 'related right') {
 
 			option.containerCss.position = 'absolute';
-			option.containerCss.top = target_offset.top + jQuery(dom_element).height();
-			option.containerCss.left = (target_offset.left + jQuery(dom_element).width()) - option.containerCss.width.substr(0,option.containerCss.width.length-2);
+			option.containerCss.top = target_offset.top + jQuery(dom_element).outerHeight();
+			option.containerCss.left = (target_offset.left + jQuery(dom_element).outerWidth()) - option.containerCss.width.substr(0,option.containerCss.width.length-2);
+		}else if(option.displayMode === 'relative'){
+
+			option.containerCss.position = 'relative';
+
 		}
 
 		// create floatngWindow
@@ -110,13 +115,21 @@ jQuery.fn.ezFloatingWindow = function(opt) {
 		var dom_container = document.createElement('div');
 		dom_container.id = option.containerId;
 		jQuery(dom_container).css(option.containerCss).html(jQuery(option.contentsElement).clone().attr('id','').show());
-		dom_body.appendChild(dom_container);
+
+//		if(option.containerTo.indexOf("#") > -1){
+//			dom_container_to = document.getElementById(option.containerTo.substr(1));
+//		}else{
+//			dom_container_to = document.getElementsByTagName(option.containerTo).item(0);
+//		}
+//		dom_container_to.appendChild(dom_container);
+		jQuery(option.containerTo).append(jQuery(dom_container));
+
 
 		// show event
 		option.show.call(this,{'overlay': jQuery('#'+option.overlayId),'container': jQuery('#'+option.containerId)});
 
 		// if conainer position is out of window, fixed.
-		if(option.containerCss.left < 0){
+		if(option.autoPosition === true && option.containerCss.left < 0){
 			jQuery('#'+option.containerId).animate({'left':target_offset.left},'fast','swing');
 		}
 
