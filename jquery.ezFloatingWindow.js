@@ -1,3 +1,4 @@
+"use strict";
 /*
  * jQuery.ezFloatingWindow.js
  *
@@ -62,11 +63,7 @@ jQuery.fn.ezFloatingWindow = function(opt) {
 	//Window対象要素を一旦非表示に
 	$(option.contentsElement).hide();
 
-	//Event - show floatingWindow
-	jQuery(this).click(function(ev) {
-
-		//cancel native event
-		ev.preventDefault();
+	// -------
 
 		//create overlayLayer
 		var dom_overlay = document.createElement('div');
@@ -80,50 +77,60 @@ jQuery.fn.ezFloatingWindow = function(opt) {
 		dom_body.appendChild(dom_overlay);
 
 
-		// ^^ switch "displayMode"
-		var target_offset = jQuery(dom_element).offset();
-
-		if(option.displayMode === 'absolute') {
-
-			option.containerCss.position = 'absolute';
-			option.containerCss.left = (window.innerWidth - option.containerCss.width.substr(0,option.containerCss.width.length-2)) / 2;
-
-		}else if(option.displayMode === 'fixed') {
-
-			option.containerCss.position = 'fixed';
-			option.containerCss.left = (window.innerWidth - option.containerCss.width.substr(0,option.containerCss.width.length-2)) / 2;
-
-		}else if(option.displayMode === 'related left') {
-
-			option.containerCss.position = 'absolute';
-			option.containerCss.left = target_offset.left;
-			option.containerCss.top = target_offset.top + jQuery(dom_element).outerHeight();
-
-		}else if(option.displayMode === 'related right') {
-
-			option.containerCss.position = 'absolute';
-			option.containerCss.top = target_offset.top + jQuery(dom_element).outerHeight();
-			option.containerCss.left = (target_offset.left + jQuery(dom_element).outerWidth()) - option.containerCss.width.substr(0,option.containerCss.width.length-2);
-		}else if(option.displayMode === 'relative'){
-
-			option.containerCss.position = 'relative';
-
-		}
-
 		// create floatngWindow
 		option.containerCss['z-index'] = option['z-index'] + 10;
 		var dom_container = document.createElement('div');
 		dom_container.id = option.containerId;
+		// 非表示状態でshow()
 		jQuery(dom_container).css(option.containerCss).html(jQuery(option.contentsElement).clone().attr('id','').show());
-
-//		if(option.containerTo.indexOf("#") > -1){
-//			dom_container_to = document.getElementById(option.containerTo.substr(1));
-//		}else{
-//			dom_container_to = document.getElementsByTagName(option.containerTo).item(0);
-//		}
-//		dom_container_to.appendChild(dom_container);
 		jQuery(option.containerTo).append(jQuery(dom_container));
 
+		// switch "displayMode"
+		var target_offset = jQuery(dom_element).offset();
+
+		if(option.displayMode === 'absolute') {
+
+			jQuery('#'+option.containerId).css({
+				'position': 'fixed',
+				'left': (window.innerWidth - option.containerCss.width.substr(0,option.containerCss.width.length-2)) / 2
+			});
+
+		}else if(option.displayMode === 'fixed') {
+
+			jQuery('#'+option.containerId).css({
+				'position': 'fixed',
+				'left': (window.innerWidth - option.containerCss.width.substr(0,option.containerCss.width.length-2)) / 2
+			});
+
+		}else if(option.displayMode === 'related left') {
+
+			jQuery('#'+option.containerId).css({
+				'position': 'absolute',
+				'top': target_offset.top + jQuery(dom_element).outerHeight(true),
+				'left': target_offset.left
+			});
+
+		}else if(option.displayMode === 'related right') {
+
+			jQuery('#'+option.containerId).css({
+				'position': 'absolute',
+				'top': target_offset.top + jQuery(dom_element).outerHeight(true),
+				'left': (target_offset.left + jQuery(dom_element).outerWidth(true)) - jQuery('#'+option.containerId).outerWidth(true)
+			});
+
+		}else if(option.displayMode === 'relative'){
+
+			jQuery('#'+option.containerId).css({
+				'position': 'relative'
+			});
+		}
+
+
+	//Event - show floatingWindow
+	jQuery(this).click(function(ev) {
+
+		//cancel native event
+		ev.preventDefault();
 
 		// show event
 		option.show.call(this,{'overlay': jQuery('#'+option.overlayId),'container': jQuery('#'+option.containerId)});
@@ -160,8 +167,8 @@ jQuery.fn.ezFloatingWindow = function(opt) {
 	// display remove function
 	var _deleteWindow = function(){
 		option.hide.call(this,{'overlay': jQuery('#'+option.overlayId),'container': jQuery('#'+option.containerId)},function(){
-			jQuery('#'+option.containerId).remove();
-			jQuery('#'+option.overlayId).remove();
+			jQuery('#'+option.containerId).hide();
+			jQuery('#'+option.overlayId).hide();
 			jQuery('.'+option.closeClass).unbind('click');
 			jQuery('#'+option.overlayId).unbind('click');
 		});
